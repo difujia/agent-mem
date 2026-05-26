@@ -1,0 +1,11 @@
+{
+  "name": "agent-mem",
+  "version": "0.2.0",
+  "description": "Per-repo external memory for GitHub Copilot CLI. Resolves a git-repo-keyed memory directory and injects an index of its memory files into every session. Stored in ~/.agent-mem/.",
+  "author": { "name": "Fujia Di" },
+  "license": "MIT",
+  "category": "memory",
+  "keywords": ["memory", "instructions", "per-repo", "context"],
+  "hooks": "hooks/hooks.json",
+  "skills": "skills/"
+}
