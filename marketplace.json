@@ -1,0 +1,14 @@
+{
+  "name": "agent-mem-local",
+  "owner": { "name": "Fujia Di" },
+  "plugins": [
+    {
+      "name": "agent-mem",
+      "source": ".",
+      "description": "Per-repo external memory for GitHub Copilot CLI.",
+      "version": "0.2.0",
+      "category": "memory",
+      "keywords": ["memory", "instructions", "per-repo", "context"]
+    }
+  ]
+}
