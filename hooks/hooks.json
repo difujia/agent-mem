@@ -4,7 +4,7 @@
     "sessionStart": [
       {
         "type": "command",
-        "bash": "R=\"${AGENT_MEM_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}\"; if [ -z \"$R\" ]; then for c in \"$HOME\"/.copilot/installed-plugins/*/agent-mem \"$HOME\"/.copilot/installed-plugins/_direct/agent-mem; do [ -f \"$c/.claude-plugin/plugin.json\" ] && grep -q '\"name\"[[:space:]]*:[[:space:]]*\"agent-mem\"' \"$c/.claude-plugin/plugin.json\" 2>/dev/null && R=\"$c\" && break; done; fi; [ -n \"$R\" ] && exec \"$R/scripts/inject-memory.sh\" || exit 0"
+        "bash": "R=\"${AGENT_MEM_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}\"; if [ -z \"$R\" ]; then for c in \"$HOME\"/.copilot/installed-plugins/*/*agent-mem*; do [ -f \"$c/.claude-plugin/plugin.json\" ] && grep -q '\"name\"[[:space:]]*:[[:space:]]*\"agent-mem\"' \"$c/.claude-plugin/plugin.json\" 2>/dev/null && R=\"$c\" && break; done; fi; [ -n \"$R\" ] && exec \"$R/scripts/inject-memory.sh\" || exit 0"
       }
     ]
   }

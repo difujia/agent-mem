@@ -24,7 +24,7 @@ This index-first design keeps the per-session token cost roughly constant even a
 
 Pin to a specific release:
 
-    copilot plugin install difujia/agent-mem@v0.4.0
+    copilot plugin install difujia/agent-mem@v0.4.1
 
 Local-path install (for development on a clone):
 

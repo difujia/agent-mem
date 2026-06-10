@@ -22,10 +22,11 @@ The `sessionStart` hook injects an index of `~/.agent-mem/<repo>/` (MEMORY.md co
 
 ## What to do
 
-1. Resolve the plugin root and run the index builder. Pipe an empty JSON object on stdin so the script uses the current working directory.
+1. The skill-context header above shows the absolute "Base directory" of this skill, which is always `<plugin-root>/skills/agent-mem-reload`. The plugin root is two parent directories up. Substitute that base directory below as `SKILL_DIR`, then run:
 
-       AGENT_MEM_ROOT="${AGENT_MEM_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/.copilot/installed-plugins/_direct/agent-mem}}"
-       echo '{}' | "$AGENT_MEM_ROOT/scripts/inject-memory.sh" | jq -r '.additionalContext'
+       SKILL_DIR="<paste the 'Base directory' value from the skill-context header>"
+       PLUGIN_ROOT="$(cd "$SKILL_DIR/../.." && pwd -P)"
+       echo '{}' | "$PLUGIN_ROOT/scripts/inject-memory.sh" | jq -r '.additionalContext'
 
    The output is the same markdown block the sessionStart hook would emit: memdir path, MEMORY.md (capped), topic file index with previews, and read/write guidance.
 
