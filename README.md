@@ -75,11 +75,17 @@ The plugin used to (and the older `copilot()` zsh wrapper before it) store memor
 
 ## Install
 
-    copilot plugin install /Users/fujiadi/Developer/agent-mem
+    copilot plugin install difujia/agent-mem
 
-(Or any absolute path / `./relative/path` to this repo.)
+Pin to a specific release:
 
-> Copilot CLI prints a deprecation warning for local-path installs — they still work today but may be removed in favor of marketplace installs in a future release. If/when that happens, publish this directory to a GitHub repo and install with `copilot plugin install OWNER/REPO`.
+    copilot plugin install difujia/agent-mem@v0.2.0
+
+Local-path install (for development on a clone):
+
+    copilot plugin install /absolute/path/to/agent-mem
+
+> Copilot CLI prints a deprecation warning for local-path installs — they still work today but may be removed in favor of marketplace installs in a future release.
 
 Verify:
 
@@ -87,9 +93,13 @@ Verify:
 
 ## Updating
 
-`copilot plugin install` **copies** plugin files into `~/.copilot/installed-plugins/_direct/agent-mem/` — it does *not* symlink. After editing this repo, re-run:
+`copilot plugin install` **copies** plugin files into `~/.copilot/installed-plugins/_direct/agent-mem/` — it does *not* symlink. To pick up new upstream releases:
 
-    copilot plugin uninstall agent-mem && copilot plugin install /Users/fujiadi/Developer/agent-mem
+    copilot plugin uninstall agent-mem && copilot plugin install difujia/agent-mem
+
+For local development on a clone, re-install from the path after editing:
+
+    copilot plugin uninstall agent-mem && copilot plugin install /absolute/path/to/agent-mem
 
 ## Layout
 
