@@ -6,9 +6,10 @@ A GitHub Copilot CLI plugin that gives Copilot **per-repo external memory** mode
 
 On every Copilot CLI session start, the plugin's `sessionStart` hook:
 
-1. Resolves a memory directory keyed by the current git repository:
-   - Inside a git repo: `~/.agent-mem/<repo-name>/` (shared across all worktrees of the same clone, via `git --git-common-dir`).
-   - Outside a git repo: `~/.agent-mem/_nogit/<cwd-basename>/`.
+1. Resolves a memory directory keyed by the current git repo's **absolute root path**:
+   - Inside a git repo: `~/.agent-mem/<encoded-repo-root>/` where the key is the absolute repo-root path with `/` replaced by `-` (e.g., `/Users/foo/work/api` → `-Users-foo-work-api`). Worktrees of one clone share a key because they resolve to the same repo root via `git --git-common-dir`.
+   - Outside a git repo: `~/.agent-mem/<encoded-cwd>/` using the same encoding.
+   - This matches [Claude Code's `~/.claude/projects/`](https://code.claude.com/docs/en/memory#storage-location) convention, so two clones of the same repo at different paths get independent memory and unrelated repos that happen to share a basename never collide.
 2. Injects an **index** of that directory into the session via `additionalContext`:
    - The absolute memory path.
    - The contents of `MEMORY.md` (capped at 200 lines / 25 KB to match Claude Code's defaults).
@@ -19,12 +20,17 @@ This index-first design keeps the per-session token cost roughly constant even a
 
 ## Storage layout
 
-    ~/.agent-mem/<repo>/
+    ~/.agent-mem/<encoded-repo-root>/
     ├── MEMORY.md             # concise index, injected at session start (capped)
     ├── <topic>.md            # detailed topic files, loaded on demand
     └── <topic>.instructions.md   # older naming convention also supported
 
-Override the base directory with `$AGENT_MEM_DIR`.
+## Overrides
+
+| Env var | Effect |
+| --- | --- |
+| `AGENT_MEM_DIR` | Base directory. Default: `~/.agent-mem`. |
+| `AGENT_MEM_KEY` | Full key override; skips path encoding. Use to force two clones to share memory (`AGENT_MEM_KEY=my-project copilot`), to alias a repo, or to opt out of per-clone isolation. |
 
 ## How memory grows
 
@@ -69,9 +75,18 @@ Workarounds:
 
 `<!-- ... -->` block comments are stripped from `MEMORY.md` before injection (so maintainer notes don't burn tokens), matching Claude Code's CLAUDE.md handling. Comments inside fenced code blocks are preserved.
 
-## Migration from legacy storage
+## Migration from earlier versions
 
-The plugin used to (and the older `copilot()` zsh wrapper before it) store memory under `~/.copilot/repo-memory/<repo>/`. On first run for any repo, `resolve-memdir.sh` will `mv` the legacy directory into the new `~/.agent-mem/<repo>/` location automatically — no data loss. Migration is one-shot and only fires when the new path doesn't yet exist.
+Before v0.3.0 the key was just `basename(repo_root)`, which meant two clones with the same directory name (e.g., a personal and a work clone of `agent-mem`) silently shared memory. v0.3.0 switches to the full-path key.
+
+`resolve-memdir.sh` performs a one-shot `mv` to the new path the first time it runs in each repo, checking these legacy locations in order:
+
+1. `~/.agent-mem/<basename>/` (pre-v0.3.0 layout)
+2. `~/.agent-mem/_nogit/<basename>/` (pre-v0.3.0 no-git layout)
+3. `~/.copilot/repo-memory/<basename>/` (legacy `copilot()` zsh wrapper)
+4. `~/.copilot/repo-memory/_nogit/<basename>/` (same, no-git)
+
+Only fires when the new path is absent — safe and idempotent. If you had multiple clones sharing one basename-keyed directory, whichever clone runs the resolver first wins the migration; the others get fresh empty memory and can `mv` files in manually or use `AGENT_MEM_KEY` to keep sharing.
 
 ## Install
 
@@ -117,12 +132,14 @@ The original `copilot()` wrapper worked because it ran *before* `copilot` starte
 
 | Aspect | Claude Code | agent-mem |
 | --- | --- | --- |
-| Storage root | `~/.claude/projects/<project>/memory/` | `~/.agent-mem/<repo>/` |
-| Per-repo keying | git-repo, shared across worktrees | same |
+| Storage root | `~/.claude/projects/<project>/memory/` | `~/.agent-mem/<encoded-repo-root>/` |
+| Per-repo keying | encoded absolute repo-root path, shared across worktrees | same |
+| Multiple clones of same repo | independent memory per clone path | same |
 | Entry file | `MEMORY.md` (capped at 200 lines / 25 KB) | same |
 | Topic files | `<topic>.md`, loaded on demand | same |
 | Comment stripping | strips `<!-- ... -->` | same |
 | Storage override | `autoMemoryDirectory` setting | `$AGENT_MEM_DIR` env var |
+| Key override | (not exposed) | `$AGENT_MEM_KEY` env var |
 | `/memory` command | yes (`/memory`) | `/agent-mem` (avoids collision with Copilot CLI's built-in `/memory`) |
 | Proactive saving | Claude decides when to save | injected guidance encourages it |
 | Survives `/compact` | full re-injection of CLAUDE.md / MEMORY.md | **not supported** — re-run `/agent-mem` or `/clear` after compact (see [Known limitation](#known-limitation-compact-discards-the-index)) |
