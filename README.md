@@ -24,7 +24,7 @@ This index-first design keeps the per-session token cost roughly constant even a
 
 Pin to a specific release:
 
-    copilot plugin install difujia/agent-mem@v0.3.1
+    copilot plugin install difujia/agent-mem@v0.4.0
 
 Local-path install (for development on a clone):
 
@@ -75,13 +75,9 @@ Transient state, conversation logs, and generic knowledge are explicitly exclude
 
 ## Slash command
 
-Use `/agent-mem` inside a Copilot CLI session to list the memory directory for the current repo and its files (sizes + previews). The skill name avoids collision with Copilot CLI's built-in `/memory` command, which controls a different session-level memory feature.
+`/agent-mem-reload` re-injects the per-repo memory index (MEMORY.md + topic file list) into the current conversation. Use it after `/compact` discards the `sessionStart` `additionalContext` (see [Known limitation](#known-limitation-compact-discards-the-index) below).
 
-Optional arguments:
-
-- `/agent-mem` — list MEMORY.md + topic files with sizes.
-- `/agent-mem view <filename>` — read the contents of a specific topic file.
-- `/agent-mem path` — print just the absolute memory directory path.
+The skill is namespaced to avoid collision with Copilot CLI's built-in `/memory` command, which controls an unrelated session-level memory feature.
 
 ## Known limitation: `/compact` discards the index
 
@@ -89,8 +85,8 @@ Copilot CLI's `/compact` summarizes the conversation and drops the `sessionStart
 
 Workarounds:
 
-- Run `/agent-mem` after a `/compact` to re-list the memory directory; this re-establishes the index in the conversation.
-- Or `/clear` instead of `/compact` to start a fresh session, which fires `sessionStart` and re-injects the full index.
+- Run `/agent-mem-reload` after `/compact` to restore the memory index without losing the compacted summary.
+- Or use `/clear` instead of `/compact` to start a fresh session, which fires `sessionStart` and re-injects the full index — but throws away the conversation.
 
 ## Caps (mirror Claude Code's defaults)
 
@@ -108,7 +104,7 @@ Workarounds:
     hooks/hooks.json                    # sessionStart hook
     scripts/resolve-memdir.sh           # computes the per-repo memdir
     scripts/inject-memory.sh            # builds + injects the memory index
-    skills/agent-mem/SKILL.md           # /agent-mem slash command
+    skills/agent-mem-reload/SKILL.md    # /agent-mem-reload slash command
 
 ## Why an injected index, not env vars?
 
@@ -126,6 +122,6 @@ A `sessionStart` hook runs *inside* the already-spawned Copilot CLI process and 
 | Comment stripping | strips `<!-- ... -->` | same |
 | Storage override | `autoMemoryDirectory` setting | `$AGENT_MEM_DIR` env var |
 | Key override | (not exposed) | `$AGENT_MEM_KEY` env var |
-| `/memory` command | yes (`/memory`) | `/agent-mem` (avoids collision with Copilot CLI's built-in `/memory`) |
+| `/memory` command | yes (`/memory`) | `/agent-mem-reload` (avoids collision with Copilot CLI's built-in `/memory`; rehydrates the index after compact) |
 | Proactive saving | Claude decides when to save | injected guidance encourages it |
-| Survives `/compact` | full re-injection of CLAUDE.md / MEMORY.md | **not supported** — re-run `/agent-mem` or `/clear` after compact (see [Known limitation](#known-limitation-compact-discards-the-index)) |
+| Survives `/compact` | full re-injection of CLAUDE.md / MEMORY.md | **not supported** — re-run `/agent-mem-reload` or `/clear` after compact (see [Known limitation](#known-limitation-compact-discards-the-index)) |
