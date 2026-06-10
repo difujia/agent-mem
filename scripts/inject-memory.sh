@@ -178,9 +178,7 @@ Keep entries terse. Move long detail into a topic file and link to it
 from MEMORY.md. Do NOT save transient state, conversation logs, or
 generic knowledge.
 
-**Format**: plain markdown. No frontmatter required for new files (the
-\`*.instructions.md\` files without frontmatter from older versions still
-work).
+**Format**: plain markdown. No frontmatter required.
 EOF
 } > "$ctx_file"
 

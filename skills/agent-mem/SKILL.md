@@ -39,7 +39,7 @@ Show the user a concise overview of agent-mem's storage for the current repo. Th
          fi
          echo
          echo "Topic files:"
-         ls -lh "$MEMDIR"/*.md "$MEMDIR"/*.instructions.md 2>/dev/null \
+         ls -lh "$MEMDIR"/*.md 2>/dev/null \
            | grep -v 'MEMORY.md' \
            | awk '{ printf "  %-12s %s\n", $5, $NF }' \
            | sort -u || echo "  (none yet)"

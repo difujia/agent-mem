@@ -22,8 +22,7 @@ This index-first design keeps the per-session token cost roughly constant even a
 
     ~/.agent-mem/<encoded-repo-root>/
     ├── MEMORY.md             # concise index, injected at session start (capped)
-    ├── <topic>.md            # detailed topic files, loaded on demand
-    └── <topic>.instructions.md   # older naming convention also supported
+    └── <topic>.md            # detailed topic files, loaded on demand
 
 ## Overrides
 
@@ -75,26 +74,13 @@ Workarounds:
 
 `<!-- ... -->` block comments are stripped from `MEMORY.md` before injection (so maintainer notes don't burn tokens), matching Claude Code's CLAUDE.md handling. Comments inside fenced code blocks are preserved.
 
-## Migration from earlier versions
-
-Before v0.3.0 the key was just `basename(repo_root)`, which meant two clones with the same directory name (e.g., a personal and a work clone of `agent-mem`) silently shared memory. v0.3.0 switches to the full-path key.
-
-`resolve-memdir.sh` performs a one-shot `mv` to the new path the first time it runs in each repo, checking these legacy locations in order:
-
-1. `~/.agent-mem/<basename>/` (pre-v0.3.0 layout)
-2. `~/.agent-mem/_nogit/<basename>/` (pre-v0.3.0 no-git layout)
-3. `~/.copilot/repo-memory/<basename>/` (legacy `copilot()` zsh wrapper)
-4. `~/.copilot/repo-memory/_nogit/<basename>/` (same, no-git)
-
-Only fires when the new path is absent — safe and idempotent. If you had multiple clones sharing one basename-keyed directory, whichever clone runs the resolver first wins the migration; the others get fresh empty memory and can `mv` files in manually or use `AGENT_MEM_KEY` to keep sharing.
-
 ## Install
 
     copilot plugin install difujia/agent-mem
 
 Pin to a specific release:
 
-    copilot plugin install difujia/agent-mem@v0.2.0
+    copilot plugin install difujia/agent-mem@v0.3.1
 
 Local-path install (for development on a clone):
 
@@ -120,13 +106,13 @@ For local development on a clone, re-install from the path after editing:
 
     .claude-plugin/plugin.json          # plugin manifest
     hooks/hooks.json                    # sessionStart hook
-    scripts/resolve-memdir.sh           # computes the per-repo memdir (+ legacy migration)
+    scripts/resolve-memdir.sh           # computes the per-repo memdir
     scripts/inject-memory.sh            # builds + injects the memory index
     skills/agent-mem/SKILL.md           # /agent-mem slash command
 
-## Why not just set env vars from the hook?
+## Why an injected index, not env vars?
 
-The original `copilot()` wrapper worked because it ran *before* `copilot` started, so it could set `COPILOT_MEMORY_DIR` and `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` for the child process. A `sessionStart` hook runs *inside* the already-spawned process and cannot mutate its parent's environment. Instead we build the index ourselves and inject it via `additionalContext`, which is the supported plugin pathway (per the [hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference): "sessionStart … Optional — can inject `additionalContext` into the session").
+A `sessionStart` hook runs *inside* the already-spawned Copilot CLI process and cannot mutate its parent's environment, so it can't simply export `COPILOT_MEMORY_DIR` or `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` for the session to pick up. Instead we build the index ourselves and inject it via `additionalContext`, which is the supported plugin pathway (per the [hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference): "sessionStart … Optional — can inject `additionalContext` into the session").
 
 ## Differences from Claude Code's auto memory
 
