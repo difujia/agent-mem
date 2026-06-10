@@ -18,6 +18,34 @@ On every Copilot CLI session start, the plugin's `sessionStart` hook:
 
 This index-first design keeps the per-session token cost roughly constant even as the memory directory grows.
 
+## Install
+
+    copilot plugin install difujia/agent-mem
+
+Pin to a specific release:
+
+    copilot plugin install difujia/agent-mem@v0.3.1
+
+Local-path install (for development on a clone):
+
+    copilot plugin install /absolute/path/to/agent-mem
+
+> Copilot CLI prints a deprecation warning for local-path installs — they still work today but may be removed in favor of marketplace installs in a future release.
+
+Verify:
+
+    copilot plugin list   # should list agent-mem
+
+## Updating
+
+`copilot plugin install` **copies** plugin files into `~/.copilot/installed-plugins/_direct/agent-mem/` — it does *not* symlink. To pick up new upstream releases:
+
+    copilot plugin uninstall agent-mem && copilot plugin install difujia/agent-mem
+
+For local development on a clone, re-install from the path after editing:
+
+    copilot plugin uninstall agent-mem && copilot plugin install /absolute/path/to/agent-mem
+
 ## Storage layout
 
     ~/.agent-mem/<encoded-repo-root>/
@@ -73,34 +101,6 @@ Workarounds:
 | Per-entry preview line | 100 chars |
 
 `<!-- ... -->` block comments are stripped from `MEMORY.md` before injection (so maintainer notes don't burn tokens), matching Claude Code's CLAUDE.md handling. Comments inside fenced code blocks are preserved.
-
-## Install
-
-    copilot plugin install difujia/agent-mem
-
-Pin to a specific release:
-
-    copilot plugin install difujia/agent-mem@v0.3.1
-
-Local-path install (for development on a clone):
-
-    copilot plugin install /absolute/path/to/agent-mem
-
-> Copilot CLI prints a deprecation warning for local-path installs — they still work today but may be removed in favor of marketplace installs in a future release.
-
-Verify:
-
-    copilot plugin list   # should list agent-mem
-
-## Updating
-
-`copilot plugin install` **copies** plugin files into `~/.copilot/installed-plugins/_direct/agent-mem/` — it does *not* symlink. To pick up new upstream releases:
-
-    copilot plugin uninstall agent-mem && copilot plugin install difujia/agent-mem
-
-For local development on a clone, re-install from the path after editing:
-
-    copilot plugin uninstall agent-mem && copilot plugin install /absolute/path/to/agent-mem
 
 ## Layout
 
