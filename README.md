@@ -61,6 +61,8 @@ For local development on a clone, re-install from the path after editing:
 
 ## How memory grows
 
+**Lazy directory creation** — resolving the memory path, starting a session, and running `/agent-mem-reload` do not create the memory directory. The index is still injected when the directory does not exist, so Copilot knows where to save. Copilot creates the directory only when it is ready to write the first memory file.
+
 **Explicit writes** — when you tell Copilot "remember this for this repo", it appends a terse entry to `MEMORY.md` (creating it if needed), or splits longer content into a new `<topic>.md` file and links to it from `MEMORY.md`.
 
 **Proactive writes** — the injected guidance also tells Copilot to save *durable, repo-specific* learnings without being asked, when all of the following are true:
@@ -105,6 +107,12 @@ Workarounds:
     scripts/resolve-memdir.sh           # computes the per-repo memdir
     scripts/inject-memory.sh            # builds + injects the memory index
     skills/agent-mem-reload/SKILL.md    # /agent-mem-reload slash command
+
+## Development
+
+Run the memory lifecycle regression checks (requires Bash, Git, and jq):
+
+    bash tests/memory-lifecycle.sh
 
 ## Why an injected index, not env vars?
 

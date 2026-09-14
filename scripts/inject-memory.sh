@@ -34,7 +34,6 @@ if [ -n "$session_cwd" ] && [ -d "$session_cwd" ]; then
 fi
 
 memdir="$("$script_dir/resolve-memdir.sh")"
-[ -d "$memdir" ] || exit 0
 
 # --- Caps (mirror Claude Code's defaults so behavior is predictable).
 MAX_MEMORY_LINES=200
@@ -157,6 +156,10 @@ trap 'rm -f "$ctx_file"' EXIT
   # --- Read/write guidance for the agent.
   cat <<EOF
 ## How to use this memory
+
+**Directory creation**: the memory directory may not exist yet. Do not create
+it while resolving the path, reading memory, or reloading the index. Create it
+with \`mkdir -p\` only when you are ready to write the first memory file.
 
 **Reading on demand**: topic files above are NOT loaded into context. When a
 topic looks relevant to the current task, read it with the view tool:

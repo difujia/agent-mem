@@ -32,4 +32,4 @@ The `sessionStart` hook injects an index of `~/.agent-mem/<repo>/` (MEMORY.md co
 
 2. Do **not** summarize or paraphrase the output for the user — they already see it in the tool result, and the point is for *you* to have it back in context. A brief one-line confirmation ("Reloaded agent-mem index from `<memdir>`.") is enough.
 
-3. Do not edit any memory files from this skill. Writing is the agent's normal workflow when the user says "remember this" or when the agent proactively saves a durable learning per the injected guidance.
+3. Do not create the memory directory or edit any memory files from this skill. A missing directory is normal until the first memory write. Writing is the agent's normal workflow when the user says "remember this" or when the agent proactively saves a durable learning per the injected guidance.

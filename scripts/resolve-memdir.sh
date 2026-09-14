@@ -15,7 +15,7 @@
 #   - encode(path) = path with each '/' replaced by '-' (e.g.,
 #     /Users/foo/repo -> -Users-foo-repo).
 #
-# Prints the absolute memdir to stdout. Creates the directory.
+# Prints the absolute memdir to stdout without creating the directory.
 
 set -uo pipefail
 
@@ -34,6 +34,4 @@ else
 fi
 
 memdir="$base/$key"
-mkdir -p "$memdir" 2>/dev/null || true
 printf '%s\n' "$memdir"
-
