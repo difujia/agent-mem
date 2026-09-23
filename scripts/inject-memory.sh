@@ -166,20 +166,48 @@ topic looks relevant to the current task, read it with the view tool:
 \`view ${memdir}/<filename>\`.
 
 **Writing (explicit)**: when the user asks you to "remember", "save",
-"memorize", or "note" something for this repo, append a concise entry to
-\`${memdir}/MEMORY.md\` (create if missing), or split detailed notes into a
-new \`${memdir}/<kebab-case-topic>.md\` file referenced from MEMORY.md.
+"memorize", or "note" something for this repo, use the same reflection,
+evidence, and maintenance rules below rather than blindly appending it.
 
-**Writing (proactive)**: also save durable, repo-specific learnings without
-being asked, when ALL of the following are true:
-  - The fact is durable (true across sessions, not session-state)
-  - It's repo-specific (not generic knowledge the model already has)
-  - You'd otherwise re-derive it next session — e.g. a non-obvious build
-    command, a corrected mistake the user pointed out, an architectural
-    constraint, a tool quirk, or a user preference about this repo
-Keep entries terse. Move long detail into a topic file and link to it
-from MEMORY.md. Do NOT save transient state, conversation logs, or
+**Learning trigger**: whenever user feedback causes a revision (including
+design, code, docs, plans, or workflow), reflect before finishing your response.
+This is not limited to explicit corrections or repeated feedback. Also
+evaluate verified repo-specific discoveries you would otherwise re-derive
+in a later session. Reflection does not require a write.
+
+**Reflection and scope**: identify the session's main work goal; revisit it
+when the user redirects the work. Reflect on why the feedback changed your
+approach and whether the underlying principle applies beyond that goal to
+other tasks in this repo. Broader scope is a strong signal, not sufficient
+proof of durability. Do not save lessons limited to this session.
+Synthesize the smallest supported, actionable principle, rather than copying
+the feedback or recording the change. Preserve its scope and limiting
+conditions; do not invent universal rules or cross-repo preferences.
+Proactively save qualifying lessons without waiting for a "remember" request.
+If the intended scope or lasting applicability is unclear, ask before saving.
+
+**Evidence and exclusions**: ground user requirements in their feedback and
+technical claims in inspected code, docs, or verified execution. Save a terse
+rule, its scope, and a brief source, not a transcript or change log. Never save
+secrets or personal data, unverified assumptions, temporary task state, or
 generic knowledge.
+
+**Maintenance (all writes)**: first read the existing MEMORY.md and relevant
+topic files, not just the possibly truncated index or topic previews. Compare
+meaning and scope: skip duplicates and merge complementary lessons.
+For a conflict in the same scope and conditions, if new feedback establishes
+a lasting replacement, update the outdated entry and related index/topic
+summaries in place; do not leave contradictory guidance active.
+Different scopes and one-off exceptions do not invalidate an existing rule.
+If it is unclear whether the old rule is superseded, ask before changing it.
+Store accepted lessons in \`${memdir}/MEMORY.md\`, with longer detail in
+\`${memdir}/<kebab-case-topic>.md\` referenced from MEMORY.md. Keep entries terse.
+No qualifying new or changed lesson means no writes or directory creation.
+
+**Save confirmation**: verify the saved content before claiming success.
+After resolving a conflict, tell the user that the old memory is outdated
+and the updated memory has been saved; briefly state the old and new rules
+and the saved file path. Report write failures explicitly, never as success.
 
 **Format**: plain markdown. No frontmatter required.
 EOF

@@ -24,7 +24,7 @@ This index-first design keeps the per-session token cost roughly constant even a
 
 Pin to a specific release:
 
-    copilot plugin install difujia/agent-mem@v0.4.1
+    copilot plugin install difujia/agent-mem@v0.5.0
 
 Local-path install (for development on a clone):
 
@@ -63,15 +63,27 @@ For local development on a clone, re-install from the path after editing:
 
 **Lazy directory creation** — resolving the memory path, starting a session, and running `/agent-mem-reload` do not create the memory directory. The index is still injected when the directory does not exist, so Copilot knows where to save. Copilot creates the directory only when it is ready to write the first memory file.
 
-**Explicit writes** — when you tell Copilot "remember this for this repo", it appends a terse entry to `MEMORY.md` (creating it if needed), or splits longer content into a new `<topic>.md` file and links to it from `MEMORY.md`.
+**Explicit writes** — when you tell Copilot "remember this for this repo", it evaluates the candidate using the same reflection, evidence, and maintenance rules as proactive learning rather than blindly appending it. Accepted lessons go into `MEMORY.md`, with longer detail in a linked `<topic>.md` file.
 
-**Proactive writes** — the injected guidance also tells Copilot to save *durable, repo-specific* learnings without being asked, when all of the following are true:
+**Feedback-driven reflection** — whenever user feedback causes a revision, including design, code, docs, plans, or workflow, the injected guidance tells Copilot to reflect before finishing its response. The feedback need not be an explicit correction, repeated, or accompanied by a request to remember. Verified, repo-specific discoveries that would otherwise need to be re-derived also trigger evaluation.
 
-- The fact is durable across sessions, not session-state.
-- It's repo-specific, not generic knowledge the model already has.
-- You'd otherwise re-derive it next session — e.g. a non-obvious build command, a corrected mistake, an architectural constraint, a tool quirk, or a user preference.
+**Scope and synthesis** — Copilot identifies the session's main work goal, revisiting it when the user redirects the work, and considers why the feedback changed the approach. A principle that applies beyond that goal to other tasks in the repo is a strong candidate for memory, not an automatic write. Feedback limited to the current task or session is not saved. Copilot distills the smallest supported, actionable rule with its scope, limiting conditions, and a brief source rather than copying the feedback or logging the change. It asks if lasting applicability is unclear.
 
-Transient state, conversation logs, and generic knowledge are explicitly excluded.
+**Evidence and exclusions** — user requirements must come from user feedback, and technical claims from inspected code, docs, or verified execution. Secrets, personal data, unverified assumptions, temporary task state, conversation logs, and generic knowledge are excluded. Repo feedback must not be promoted into unsupported universal rules or cross-repo preferences.
+
+**Maintenance and conflicts** — before an explicit or proactive write, Copilot reads the existing `MEMORY.md` and relevant topic files, skips semantic duplicates, and merges complementary lessons. If new feedback establishes a lasting replacement for a conflicting rule in the same scope and conditions, it updates the obsolete entry and related index/topic summaries rather than leaving contradictory rules active. Different scopes and one-off exceptions do not invalidate the old rule; unclear conflicts require clarification. After verifying a conflict update was saved, Copilot tells the user the old memory is outdated, summarizes the old and new rules, and gives the saved file path. Failed writes must be reported as failures.
+
+For example:
+
+| Current goal | Feedback that leads to a revision | Learning decision |
+| --- | --- | --- |
+| Revise one settings screen | "Throughout this project, show save errors inline rather than in dialogs." | Distill the project-wide error-display rule; the lesson extends beyond this screen. |
+| Revise this release's announcement | "Remove the migration paragraph from this announcement." | Skip: the feedback is limited to the current deliverable. |
+| Adjust one hook | "Resolving or reading a memory path must never create its directory." | Distill the read-only lifecycle constraint, not a log of the hook edit. |
+| Revise one settings screen, with an existing project-wide dialog-error rule | "Use inline save errors throughout the project instead." | Replace the obsolete rule and notify after verifying the save. |
+| Prepare a one-off demo, with an existing project-wide inline-error rule | "Use a dialog just for this demo." | Skip the session-only exception; do not invalidate the standing rule. |
+
+Reflection does not require a write: without a qualifying new or changed lesson, no files or memory directories are created. Learning remains prompt-driven: `sessionStart` injects these instructions for the agent to follow during the conversation, and `/agent-mem-reload` restores the same guidance. The hook does not itself interpret feedback or write lessons, and injection alone does not guarantee the agent will follow the guidance. No separate learning skill is required.
 
 **Reading** — topic files are *not* injected at session start. When a topic looks relevant to the current task, Copilot reads it with the view tool. This is the same on-demand pattern Claude Code uses for its topic files.
 
@@ -110,9 +122,11 @@ Workarounds:
 
 ## Development
 
-Run the memory lifecycle regression checks (requires Bash, Git, and jq):
+Run the memory lifecycle and injected-guidance regression checks (requires Bash, Git, and jq):
 
     bash tests/memory-lifecycle.sh
+
+These checks verify the emitted guidance and read-only hook behavior, not an AI model's learning decisions.
 
 ## Why an injected index, not env vars?
 

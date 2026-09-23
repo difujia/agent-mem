@@ -26,6 +26,56 @@ read_context() {
     jq -er '.additionalContext | select(type == "string" and length > 0)'
 }
 
+assert_learning_guidance() {
+  local context="$1"
+  local case_name="$2"
+
+  assert_contains "$context" 'whenever user feedback causes a revision' \
+    "$case_name: missing feedback-driven reflection trigger"
+  assert_contains "$context" 'design, code, docs, plans, or workflow' \
+    "$case_name: reflection trigger excludes non-code revisions"
+  assert_contains "$context" 'not limited to explicit corrections or repeated feedback' \
+    "$case_name: reflection requires explicit or repeated correction"
+  assert_contains "$context" "identify the session's main work goal" \
+    "$case_name: missing session-goal baseline"
+  assert_contains "$context" 'applies beyond that goal' \
+    "$case_name: missing broader-scope evaluation"
+  assert_contains "$context" 'Do not save lessons limited to this session.' \
+    "$case_name: session-only feedback is not excluded"
+  assert_contains "$context" 'Synthesize the smallest supported, actionable principle' \
+    "$case_name: missing reflective synthesis"
+  assert_contains "$context" 'without waiting for a "remember" request' \
+    "$case_name: qualifying lessons are not saved proactively"
+  assert_contains "$context" 'first read the existing MEMORY.md and relevant' \
+    "$case_name: missing pre-write memory read"
+  assert_contains "$context" 'skip duplicates and merge complementary lessons' \
+    "$case_name: missing semantic deduplication"
+  assert_contains "$context" 'For a conflict in the same scope and conditions' \
+    "$case_name: missing scope-aware conflict handling"
+  assert_contains "$context" 'a lasting replacement, update the outdated entry' \
+    "$case_name: missing obsolete-memory replacement"
+  assert_contains "$context" 'do not leave contradictory guidance active' \
+    "$case_name: conflicting old guidance can remain active"
+  assert_contains "$context" 'Different scopes and one-off exceptions do not invalidate an existing rule.' \
+    "$case_name: scoped exceptions invalidate standing rules"
+  assert_contains "$context" 'ask before changing it' \
+    "$case_name: ambiguous conflicts do not require clarification"
+  assert_contains "$context" 'verify the saved content before claiming success' \
+    "$case_name: missing save verification"
+  assert_contains "$context" 'tell the user that the old memory is outdated' \
+    "$case_name: missing obsolete-memory notification"
+  assert_contains "$context" 'the updated memory has been saved' \
+    "$case_name: missing replacement-memory notification"
+  assert_contains "$context" 'the saved file path' \
+    "$case_name: missing saved-memory location"
+  assert_contains "$context" 'Report write failures explicitly, never as success.' \
+    "$case_name: missing write-failure reporting"
+  assert_contains "$context" 'secrets or personal data, unverified assumptions' \
+    "$case_name: missing unsafe-memory exclusions"
+  assert_contains "$context" 'No qualifying new or changed lesson means no writes or directory creation.' \
+    "$case_name: evaluating candidates creates files"
+}
+
 check_lifecycle() (
   session_dir="$1"
   case_name="$2"
@@ -44,6 +94,7 @@ check_lifecycle() (
   assert_contains "$context" "none yet" "$case_name: missing empty-memory index"
   assert_contains "$context" 'only when you are ready to write the first memory file' \
     "$case_name: missing lazy-write guidance"
+  assert_learning_guidance "$context" "$case_name: session start"
   [ ! -e "$AGENT_MEM_DIR" ] ||
     fail "$case_name: session start created a directory"
 
@@ -63,6 +114,7 @@ check_lifecycle() (
   printf '# Build notes\n\nDetails loaded on demand only.\n' > "$memdir/build.md"
   before="$(cksum "$memdir/MEMORY.md" "$memdir/build.md")"
   context="$(printf '{}\n' | read_context)"
+  assert_learning_guidance "$context" "$case_name: reload saved memory"
   assert_contains "$context" 'Durable fixture learning.' \
     "$case_name: first saved memory was not injected"
   assert_contains "$context" '`build.md`' "$case_name: missing topic index"
